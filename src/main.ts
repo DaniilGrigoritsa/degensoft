@@ -21,7 +21,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(httpProvider));
 
 const generateAmountIn = (decimals: number): string => {
     const value = randomValueInterval(config.amountInMin, config.amountInMax);
-    return (value * 10 ** decimals).toString();
+    return (value * 10 ** decimals).toFixed();
 }
 
 const interval = (): void => {
@@ -45,30 +45,30 @@ const interval = (): void => {
     else throw new Error("Unknown exchange name");
     
     privateKeys.forEach(async (privateKey) => {
-        const amountIn = generateAmountIn(tokenIn.decimals);
+        try {
+            const amountIn = generateAmountIn(tokenIn.decimals);
 
-        const transaction = await exchange.generateTransaction(amountIn, privateKey);
-        
-        const signedTransaction = await web3.eth.accounts.signTransaction(transaction, privateKey);
+            const transaction = await exchange.generateTransaction(amountIn, privateKey);
+            
+            const signedTransaction = await web3.eth.accounts.signTransaction(transaction, privateKey);
 
-        const rawTransaction = signedTransaction.rawTransaction;
-
-        if (rawTransaction)
-            try {
+            const rawTransaction = signedTransaction.rawTransaction;
+            
+            if (rawTransaction)
                 web3.eth.sendSignedTransaction(rawTransaction, (error, hash) => {
                     if (error) {
                         errorLogger.error(error.message);
                     }
                     else {
-                        const amount = Number(amountIn) / 10 ** tokenIn.decimals;
+                        const amount = (Number(amountIn) / 10 ** tokenIn.decimals).toFixed(5);
                         const message = `${tokenIn.symbol} -> ${tokenOut.symbol} amount: ${amount} wallet: ${transaction.from} hash: ${hash}`;
                         transactionLogger.info(message);
                     }
                 });
-            }
-            catch (error) {
-                errorLogger.error((error as Error).message);
-            }
+        }
+        catch (error) {
+            errorLogger.error((error as Error).message);
+        }
         
         interval();
     });

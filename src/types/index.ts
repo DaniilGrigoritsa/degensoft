@@ -18,7 +18,7 @@ export type TransactionConfig = {
     gas: string;
     gasPrice:  string
     data: HexString,
-    chainId: number
+    value: string
 }
 
 export type ExchangeName = "sushi" | "syncswap"

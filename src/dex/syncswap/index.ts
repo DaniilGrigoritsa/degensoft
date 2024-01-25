@@ -37,7 +37,7 @@ export class SyncSwap implements Exchange {
             gas: "",
             gasPrice: await this.getGasPrice(),
             data: "0x",
-            chainId: this.chainId
+            value: "0"
         };
     }
 }

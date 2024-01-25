@@ -47,6 +47,12 @@ export class Sushi implements Exchange {
     }
 
 
+    private estimeteGas = async (transactionConfig: Omit<TransactionConfig, "gas">): Promise<string> => {
+        const gas = await this.web3.eth.estimateGas(transactionConfig);
+        return gas.toString();
+    }
+
+
     generateTransaction = async (amountIn: string, privateKey: string): Promise<TransactionConfig> => {
         const maxPriceImpact = "0.005";
 
@@ -86,13 +92,19 @@ export class Sushi implements Exchange {
             routeProcessorArgs.routeCode
         ).encodeABI() as HexString;
 
-        return {
+        const transactionConfig: Omit<TransactionConfig, "gas"> = {
             from: account.address as HexString,
             to: routeProcessor,
-            gas: "200000",
             gasPrice: gasPrice,
             data: calldata,
-            chainId: this.chainId
+            value: routeProcessorArgs.value
+        }
+
+        const gas = await this.estimeteGas(transactionConfig);
+
+        return {
+            ...transactionConfig,
+            gas: gas
         };
     }
 }
